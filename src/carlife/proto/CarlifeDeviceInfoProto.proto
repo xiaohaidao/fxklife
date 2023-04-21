@@ -25,4 +25,5 @@ message CarlifeDeviceInfo
 	optional int32 sdk_int = 21;
 	optional string token = 22;
 	optional string btaddress = 23;
+    optional string btname = 24; // Add
 }

@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-project("tools"
+project("Fxklife"
     VERSION 0.0.1
 )
 
