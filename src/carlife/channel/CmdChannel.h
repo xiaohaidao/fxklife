@@ -7,6 +7,13 @@
 
 #include "carlife/channel/ChannelBase.h"
 
+// parameter: [moduleid, supportflag, frequency]
+typedef std::vector<std::tuple<int, bool, int>> mobile_info_vec_t;
+// parameter: [moduleid, flag, frequency]
+typedef std::vector<std::tuple<int, int, int>> vehicle_info_vec_t;
+// parameter: [module_id, status_id]
+typedef std::vector<std::pair<int, int>> status_vec_t;
+
 /**
 ```mermaid
 sequenceDiagram
@@ -49,6 +56,25 @@ sequenceDiagram
 
   Note right of MD: begin to send video <br> data in video channel
   MD->>HU: MSG_VIDEO_DATA
+```
+
+```mermaid
+sequenceDiagram
+  Note left of HU: stop Navi
+  HU->>MD: MSG_CMD_MODULE_CONTROL(parameter1)
+  MD-->>HU: MSG_CMD_MODULE_STATUS(parameter1)
+
+  Note left of HU: stop VR
+  HU->>MD: MSG_CMD_MODULE_CONTROL(parameter2)
+  MD-->>HU: MSG_CMD_MODULE_STATUS(parameter2)
+
+  Note left of HU: pause Media
+  HU->>MD: MSG_CMD_MODULE_CONTROL(parameter3)
+  MD-->>HU: MSG_CMD_MODULE_STATUS(parameter3)
+
+  Note left of HU: resume Media
+  HU->>MD: MSG_CMD_MODULE_CONTROL(parameter4)
+  MD-->>HU: MSG_CMD_MODULE_STATUS(parameter4)
 ```
 
 */
@@ -106,6 +132,15 @@ public:
   DECLARE_MEMBER_FUNCS(car_oil, int, int, bool);
 
   // MD->HU
+  DECLARE_MEMBER_FUNCS(screen_on, );
+
+  // MD->HU
+  DECLARE_MEMBER_FUNCS(screen_off, );
+
+  // MD->HU
+  DECLARE_MEMBER_FUNCS(screen_userpresent, );
+
+  // MD->HU
   DECLARE_MEMBER_FUNCS(foreground, );
 
   // MD->HU
@@ -158,7 +193,6 @@ public:
   };
   // HU->MD
   // parameter: [moduleid, flag, frequency]
-  typedef std::vector<std::tuple<int, int, int>> vehicle_info_vec_t;
   DECLARE_MEMBER_FUNCS(car_data_subscribe_done, const vehicle_info_vec_t &);
 
   // MD->HU
@@ -193,7 +227,6 @@ public:
   DECLARE_MEMBER_FUNCS(ui_action_sound, );
 
   // HU->MD
-  typedef std::vector<std::tuple<int, bool, int>> mobile_info_vec_t;
   DECLARE_MEMBER_FUNCS(carlife_data_subscribe, const mobile_info_vec_t &);
 
   // MD->HU
@@ -246,6 +279,16 @@ public:
 
   // MD->HU
   DECLARE_MEMBER_FUNCS(md_exit, );
+
+public: //! media/navi/vr cmd
+  // MD->HU
+  // Deprecation, replace by vr_status
+  // parameter: [module_id, status_id]
+  DECLARE_MEMBER_FUNCS(module_status, const status_vec_t &);
+
+  // HU->MD
+  // paramter: module id, status id
+  DECLARE_MEMBER_FUNCS(module_control, int, int);
 
 public: //! bluetooth cmd
   enum RequestType {
@@ -328,16 +371,6 @@ public: //! VR cmd
   // MD->HU
   DECLARE_MEMBER_FUNCS(mic_record_recog_start, );
 
-  // MD->HU
-  // Deprecation, replace by vr_status
-  // parameter: [module_id, status_id]
-  typedef std::vector<std::pair<int, int>> status_vec_t;
-  DECLARE_MEMBER_FUNCS(mic_status, const status_vec_t &);
-
-  // HU->MD
-  // paramter: module id, status id
-  DECLARE_MEMBER_FUNCS(mic_control, int, int);
-
 public:
   void recv_data(const char *data, size_t data_size) override;
 
@@ -350,6 +383,6 @@ private:
   char buff_[CMD_DATA_SIZE];
   size_t buff_size_;
 
-};     // class CmdChannel
+}; // class CmdChannel
 
 #endif // CARLIFE_CHANNEL_CMDCHANNEL_H

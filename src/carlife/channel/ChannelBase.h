@@ -27,6 +27,6 @@ protected:
 private:
   std::function<int(const char *, size_t)> send_;
 
-};     // class ChannelBase
+}; // class ChannelBase
 
 #endif // CARLIFE_CHANNEL_CHANNELBASE_H

@@ -4,6 +4,22 @@
 
 #include "carlife/channel/ChannelBase.h"
 
+/**
+```mermaid
+sequenceDiagram
+  HU->>MD: MSG_CMD_VIDEO_ENCODER_INIT
+  MD->>HU: MSG_CMD_VIDEO_ENCODER_INIT_DONE
+  HU->>MD: MSG_CMD_VIDEO_ENCODER_START
+
+  note left of HU: change frame rate
+  HU->>MD: MSG_CMD_VIDEO_ENCODER_FRAME_RATE_CHANGE
+  MD->>HU: MSG_CMD_VIDEO_ENCODER_FRAME_RATE_CHANGE_DONE
+
+  note left of HU: pause video
+  HU->>MD: MSG_CMD_VIDEO_ENCODER_PAUSE
+  HU->>MD: MSG_CMD_VIDEO_ENCODER_START
+```
+*/
 class VideoChannel : public ChannelBase {
 public:
   // MD->HU
@@ -25,6 +41,6 @@ private:
   char buff_[VIDEO_DATA_SIZE];
   size_t buff_size_;
 
-};     // class VideoChannel
+}; // class VideoChannel
 
 #endif // CARLIFE_CHANNEL_VIDEOCHANNEL_H

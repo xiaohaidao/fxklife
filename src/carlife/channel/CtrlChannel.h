@@ -50,6 +50,6 @@ private:
   char buff_[CTRL_DATA_SIZE];
   size_t buff_size_;
 
-};     // class CtrlChannel
+}; // class CtrlChannel
 
 #endif // CARLIFE_CHANNEL_CTRLCHANNEL_H

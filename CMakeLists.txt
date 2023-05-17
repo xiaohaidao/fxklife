@@ -6,20 +6,23 @@ project("Fxklife"
 )
 
 # import common configure
-include(cmake/common.cmake)
+include(cmake/common_cmake.cmake)
 
 # import configure
 include(clang_format)
 include(clang_tidy)
 include(CPackSourceConfig)
+include(doxygen)
+
+#import dependencies
+include(dependencies_${PROJECT_NAME})
 
 add_subdirectory(src)
-# add_subdirectory(example)
 
 option(BUILD_TESTING "Build test" OFF)
 include(CTest)
 if(BUILD_TESTING)
-    include(googletest)
+    include(dependencies_dev_${PROJECT_NAME})
 
     ADD_SUBDIRECTORY(tests)
 endif()

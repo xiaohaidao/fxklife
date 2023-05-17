@@ -4,6 +4,9 @@
 
 #include "carlife/channel/ChannelBase.h"
 
+// parameter: [module_id, status_id]
+typedef std::vector<std::pair<int, int>> status_vec_t;
+
 /**
   Timing diagram
   MD                               HU
@@ -17,6 +20,23 @@
        -- status -->
 ---
 
+```mermaid
+sequenceDiagram
+  note left of MD: wakeup
+  MD->>HU: MSG_CMD_MIC_RECORD_WAKEUP_START
+  HU-->>MD: MSG_VR_MIC_DATA(MSG_VR_DATA)
+  MD->>HU: MSG_CMD_MIC_RECORD_END
+
+  note left of HU: mic
+  MD->>HU: MSG_CMD_PROTOCOL_VERSION_MATCH_STATUS
+  HU-->>MD: MSG_CMD_MODULE_CONTROL(param1:	CARLIFE_MIC_MODULE_ID, param2:
+MIC_STATUS_USE_MOBILE_MIC)
+
+  note left of MD: send VR TTS data to HU
+  MD->>HU: MSG_VR_INIT(MSG_VR_AUDIO_INIT)
+  MD->>HU: MSG_VR_DATA(MSG_VR_AUDIO_DATA)
+  MD->>HU: MSG_VR_STOP(MSG_VR_AUDIO_STOP)
+```
 */
 class VRChannel : public ChannelBase {
 public: //! vr
@@ -29,13 +49,12 @@ public: //! vr
 
   // MD->HU
   // parameter: [module_id, status_id]
-  typedef std::vector<std::pair<int, int>> status_vec_t;
   DECLARE_MEMBER_FUNCS(vr_status, const status_vec_t &);
 
   // MD->HU
   DECLARE_MEMBER_FUNCS(vr_interrupt, );
 
-  // MD->HU
+  // HU->MD
   // paramter: timestamp, data, data_size
   DECLARE_MEMBER_FUNCS(mic_data, uint64_t, const char *, size_t);
 
@@ -55,6 +74,6 @@ private:
   char buff_[VR_DATA_SIZE];
   size_t buff_size_;
 
-};     // class VRChannel
+}; // class VRChannel
 
 #endif // CARLIFE_CHANNEL_VRCHANNEL_H

@@ -16,6 +16,28 @@ public:                                                                        \
 private:                                                                       \
   std::function<type_##name> m_callback_##name
 
+#define DECLARE_MEMBER_FUNCS_TWENTY_FOUR(                                      \
+    name, param_type1, param_type2, param_type3, param_type4, param_type5,     \
+    param_type6, param_type7, param_type8, param_type9, param_type10,          \
+    param_type11, param_type12, param_type13, param_type14, param_type15,      \
+    param_type16, param_type17, param_type18, param_type19, param_type20,      \
+    param_type21, param_type22, param_type23, param_type24)                    \
+public:                                                                        \
+  typedef void(type_##name)(                                                   \
+      param_type1, param_type2, param_type3, param_type4, param_type5,         \
+      param_type6, param_type7, param_type8, param_type9, param_type10,        \
+      param_type11, param_type12, param_type13, param_type14, param_type15,    \
+      param_type16, param_type17, param_type18, param_type19, param_type20,    \
+      param_type21, param_type22, param_type23, param_type24);                 \
+                                                                               \
+  type_##name send_##name;                                                     \
+  void callback_##name(const std::function<type_##name> &f) {                  \
+    m_callback_##name = f;                                                     \
+  }                                                                            \
+                                                                               \
+private:                                                                       \
+  std::function<type_##name> m_callback_##name
+
 ////////////////////////////////////////////////////////////////////////////////
 // function implementation
 ////////////////////////////////////////////////////////////////////////////////
@@ -27,6 +49,8 @@ private:                                                                       \
   header.length = data.ByteSizeLong();                                         \
                                                                                \
   /* send */                                                                   \
+  LOG_DEBUG("send service type 0x%08X and size %d", header.service_type,       \
+            header.length);                                                    \
   send(transfer_head(header), sizeof(message_type), data);
 
 #define DECLARE_SND_NONE_MSG(message_type, servicetype)                        \
@@ -35,6 +59,8 @@ private:                                                                       \
   header.service_type = servicetype;                                           \
                                                                                \
   /* send */                                                                   \
+  LOG_DEBUG("send service type 0x%08X and size %d", header.service_type,       \
+            header.length);                                                    \
   send(transfer_head(header), sizeof(message_type));
 
 #define DECLARE_MEMBER_IMPL_TWENTY_FOUR(                                       \
@@ -683,7 +709,6 @@ private:                                                                       \
   void class_name::recv_data(const char *data, size_t data_size) {             \
     if (data_size == 0 || data == nullptr) {                                   \
       buff_size_ = 0;                                                          \
-      LOG_DEBUG("recv data clear");                                            \
       return;                                                                  \
     }                                                                          \
                                                                                \
@@ -692,14 +717,12 @@ private:                                                                       \
     const header_type &header = transfer_from_head(buff_);                     \
     if (buff_size_ == data_size) { /* first enter*/                            \
       header_type *h = (header_type *)&header;                                 \
-      h->service_type = (decltype(h->service_type))sockets::netToHost(         \
+      h->service_type = (decltype(h->service_type))sockets::net_to_host(       \
           (uint32_t)(h->service_type));                                        \
-      h->length = sockets::netToHost(h->length);                               \
+      h->length = sockets::net_to_host(h->length);                             \
     }                                                                          \
     if (buff_size_ < sizeof(header_type) ||                                    \
         header.length > buff_size_ - sizeof(header_type)) {                    \
-      LOG_DEBUG("continue recv data %d, header data length %d, type 0x%x",     \
-                buff_size_, header.length, header.service_type);               \
       return;                                                                  \
     }                                                                          \
     size_t remain = 0, data_offset = 0;                                        \
@@ -708,8 +731,8 @@ private:                                                                       \
       buff_size_ -= remain;                                                    \
       data_offset = data_size - remain;                                        \
     }                                                                          \
-    LOG_DEBUG("parse recv size %d, header length %d header size %d",           \
-              buff_size_, header.length, sizeof(header_type));                 \
+    /*LOG_DEBUG("parse recv size %d, header length %d header size %d",         \
+              buff_size_, header.length, sizeof(header_type));*/               \
                                                                                \
     parse_message(buff_, buff_size_);                                          \
     buff_size_ = 0;                                                            \
@@ -731,6 +754,19 @@ private:                                                                       \
               header.length);                                                  \
     return;                                                                    \
   }                                                                            \
-  LOG_DEBUG("service type 0x%x", header.service_type);
+  switch (header.service_type) {                                               \
+  case MSG_VIDEO_DATA:                                                         \
+  case MSG_VR_DATA:                                                            \
+  case MSG_VR_MIC_DATA:                                                        \
+  case MSG_TTS_DATA:                                                           \
+  case MSG_MEDIA_DATA:                                                         \
+    LOG_TRACE("data size %d, header data length %d, service type 0x%08X",      \
+              data_size, header.length, header.service_type);                  \
+    break;                                                                     \
+  default:                                                                     \
+    LOG_INFO("data size %d, header data length %d, service type 0x%08X",       \
+             data_size, header.length, header.service_type);                   \
+    break;                                                                     \
+  }
 
 #endif // CARLIFE_CHANNEL_CHANNELBASEMACRO_H

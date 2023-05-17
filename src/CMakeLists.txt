@@ -1,18 +1,18 @@
 
-include(libusb)
-include(common_cpp)
-
-# protobuf
-find_package(Protobuf REQUIRED)
-include_directories(${Protobuf_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
 file(GLOB PROTO_FILES ${CMAKE_CURRENT_SOURCE_DIR}/carlife/proto/*.proto)
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})
+GENERATE_PROTOBUF(
+    TARGET proto-obj
+    IMPORT_DIR carlife/proto
+    PROTO_SRC
+    ${PROTO_FILES}
+)
 
 set(library_name "Fxklife")
 add_executable(${library_name}
-    ${PROTO_SRCS}
-    ${PROTO_HDRS}
+    av/CaptureAudioWasapi.cpp
+    av/CaptureDesktopDxgi.cpp
+    av/Decoder.cpp
+    av/Encoder.cpp
     carlife/channel/ChannelBase.cpp
     carlife/channel/CmdChannel.cpp
     carlife/channel/CtrlChannel.cpp
@@ -20,18 +20,35 @@ add_executable(${library_name}
     carlife/channel/TTSChannel.cpp
     carlife/channel/VideoChannel.cpp
     carlife/channel/VRChannel.cpp
+    carlife/AOA.cpp
+    carlife/CarlifeHeadUnit.cpp
     carlife/CarlifeMobileDevice.cpp
+    AOAService.cpp
+    HeadUnit.cpp
     MobileDevice.cpp
+    ServiceDiscovery.cpp
+    TransferPort.cpp
+    VideoService_win.cpp
     main.cpp
+    # "main copy 2.cpp"
 )
 
 target_link_libraries(${library_name} PUBLIC
-    proactor
-    sockets
-    utils
-    # libusb
-    ${Protobuf_LIBRARIES}
+    common_cpp::proactor
+    common_cpp::utils
+    FFmpeg::avcodec
+    FFmpeg::avutil
+    FFmpeg::swscale
+    libusb
+    proto-obj
 )
+
+if(WIN32)
+target_link_libraries(${library_name} PUBLIC
+    d3d11
+# winmm user32 Kernel32 Ole32
+)
+endif()
 
 target_include_directories(${library_name} PRIVATE
     ${PROJECT_SOURCE_DIR}/src

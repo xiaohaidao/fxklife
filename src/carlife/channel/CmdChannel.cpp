@@ -152,15 +152,15 @@ void CmdChannel::parse_message(const char *data, size_t data_size) {
     break;
   }
   case MSG_CMD_SCREEN_ON: { // MD->HU
-    LOG_WARN("Not support now");
+    DECLARE_CALLBACK_IMPL_NONE(screen_on);
     break;
   }
   case MSG_CMD_SCREEN_OFF: { // MD->HU
-    LOG_WARN("Not support now");
+    DECLARE_CALLBACK_IMPL_NONE(screen_off);
     break;
   }
   case MSG_CMD_SCREEN_USERPRESENT: { // MD->HU
-    LOG_WARN("Not support now");
+    DECLARE_CALLBACK_IMPL_NONE(screen_userpresent);
     break;
   }
   case MSG_CMD_FOREGROUND: { // MD->HU
@@ -396,6 +396,27 @@ void CmdChannel::parse_message(const char *data, size_t data_size) {
     break;
   }
   */
+  case MSG_CMD_MODULE_CONTROL: { // HU->MD
+    DECLARE_CALLBACK_IMPL_TWO(module_control, CarlifeModuleStatus, moduleid,
+                              statusid)
+    break;
+  }
+  case MSG_CMD_MODULE_STATUS: { // MD->HU
+    CarlifeModuleStatusList data;
+    data.ParseFromArray(message, message_size);
+
+    if (m_callback_module_status) {
+      // status_vec_t result(data.cnt());
+      status_vec_t result(data.modulestatus_size());
+      // assert(result == data.cnt());
+      for (size_t i = 0; i < result.size(); ++i) {
+        const CarlifeModuleStatus &status = data.modulestatus(i);
+        result[i] = std::make_pair(status.moduleid(), status.statusid());
+      }
+      m_callback_module_status(result);
+    }
+    break;
+  }
 
   // verification cmd {
   case MSG_CMD_HU_AUTHEN_REQUEST: { // HU->MD
@@ -474,27 +495,6 @@ void CmdChannel::parse_message(const char *data, size_t data_size) {
     DECLARE_CALLBACK_IMPL_NONE(mic_record_recog_start)
     break;
   }
-  case MSG_CMD_MODULE_STATUS: { // MD->HU
-    CarlifeModuleStatusList data;
-    data.ParseFromArray(message, message_size);
-
-    if (m_callback_mic_status) {
-      // status_vec_t result(data.cnt());
-      status_vec_t result(data.modulestatus_size());
-      // assert(result == data.cnt());
-      for (size_t i = 0; i < result.size(); ++i) {
-        const CarlifeModuleStatus &status = data.modulestatus(i);
-        result[i] = std::make_pair(status.moduleid(), status.statusid());
-      }
-      m_callback_mic_status(result);
-    }
-    break;
-  }
-  case MSG_CMD_MODULE_CONTROL: { // HU->MD
-    DECLARE_CALLBACK_IMPL_TWO(mic_control, CarlifeModuleStatus, moduleid,
-                              statusid)
-    break;
-  }
     // VR control cmd }
 
   default:
@@ -567,6 +567,18 @@ DECLARE_MEMBER_IMPL_FOUR(CmdChannel, car_acceleration, CmdMessageHeader,
 DECLARE_MEMBER_IMPL_THREE(CmdChannel, car_oil, CmdMessageHeader,
                           MSG_CMD_CAR_OIL, CarlifeOil, int, level, int, range,
                           bool, lowfulewarning)
+
+// MD->HU
+DECLARE_MEMBER_IMPL_NONE(CmdChannel, screen_on, CmdMessageHeader,
+                         MSG_CMD_FOREGROUND)
+
+// MD->HU
+DECLARE_MEMBER_IMPL_NONE(CmdChannel, screen_off, CmdMessageHeader,
+                         MSG_CMD_FOREGROUND)
+
+// MD->HU
+DECLARE_MEMBER_IMPL_NONE(CmdChannel, screen_userpresent, CmdMessageHeader,
+                         MSG_CMD_FOREGROUND)
 
 // MD->HU
 DECLARE_MEMBER_IMPL_NONE(CmdChannel, foreground, CmdMessageHeader,
@@ -752,6 +764,24 @@ DECLARE_MEMBER_IMPL_NONE(CmdChannel, video_encoder_jpeg_ack, CmdMessageHeader,
 // MD->HU
 DECLARE_MEMBER_IMPL_NONE(CmdChannel, md_exit, CmdMessageHeader, MSG_CMD_MD_EXIT)
 
+// MD->HU
+void CmdChannel::send_module_status(const status_vec_t &status) {
+  CarlifeModuleStatusList data;
+  data.set_cnt(status.size());
+  for (auto const &i : status) {
+    CarlifeModuleStatus *s = data.add_modulestatus();
+    s->set_moduleid(i.first);
+    s->set_statusid(i.second);
+  }
+
+  DECLARE_SND_MSG(CmdMessageHeader, MSG_CMD_MODULE_STATUS)
+}
+
+// HU->MD
+DECLARE_MEMBER_IMPL_TWO(CmdChannel, module_control, CmdMessageHeader,
+                        MSG_CMD_MODULE_CONTROL, CarlifeModuleStatus, int,
+                        moduleid, int, statusid)
+
 ////////////////////////////////////////////////////////////////////////////////
 // verification cmd {
 ////////////////////////////////////////////////////////////////////////////////
@@ -872,24 +902,6 @@ DECLARE_MEMBER_IMPL_NONE(CmdChannel, mic_record_end, CmdMessageHeader,
 DECLARE_MEMBER_IMPL_NONE(CmdChannel, mic_record_recog_start, CmdMessageHeader,
                          MSG_CMD_MIC_RECORD_RECOG_START)
 
-// MD->HU
-void CmdChannel::send_mic_status(const status_vec_t &status) {
-  CarlifeModuleStatusList data;
-  data.set_cnt(status.size());
-  for (auto const &i : status) {
-    CarlifeModuleStatus *s = data.add_modulestatus();
-    s->set_moduleid(i.first);
-    s->set_statusid(i.second);
-  }
-
-  DECLARE_SND_MSG(CmdMessageHeader, MSG_CMD_MODULE_STATUS)
-}
-
-// HU->MD
-DECLARE_MEMBER_IMPL_TWO(CmdChannel, mic_control, CmdMessageHeader,
-                        MSG_CMD_MODULE_CONTROL, CarlifeModuleStatus, int,
-                        moduleid, int, statusid)
-
 ////////////////////////////////////////////////////////////////////////////////
 // VR }
 ////////////////////////////////////////////////////////////////////////////////
@@ -899,8 +911,8 @@ const CmdMessageHeader &CmdChannel::transfer_from_head(const char *data) {
 }
 
 const char *CmdChannel::transfer_head(CmdMessageHeader &header) {
-  header.length = sockets::hostToNet(header.length);
+  header.length = sockets::host_to_net(header.length);
   header.service_type =
-      (EPackageHeadType)sockets::hostToNet((uint32_t)header.service_type);
+      (EPackageHeadType)sockets::host_to_net((uint32_t)header.service_type);
   return (const char *)&header;
 }

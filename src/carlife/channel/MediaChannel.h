@@ -4,6 +4,21 @@
 
 #include "carlife/channel/ChannelBase.h"
 
+/**
+```mermaid
+sequenceDiagram
+  note left of MD: start to play music
+  MD->>HU: MSG_MEDIA_INIT
+  MD->>HU: MSG_MEDIA_DATA
+
+  note left of MD: pause music
+  MD->>HU: MSG_MEDIA_PAUSE
+
+  note left of MD: resume music
+  MD->>HU: MSG_MEDIA_RESUME_PLAY
+  MD->>HU: MSG_MEDIA_DATA
+```
+*/
 class MediaChannel : public ChannelBase {
 public:
   // MD->HU
@@ -32,6 +47,6 @@ private:
   char buff_[MEDIA_DATA_SIZE];
   size_t buff_size_;
 
-};     // class MediaChannel
+}; // class MediaChannel
 
 #endif // CARLIFE_CHANNEL_MEDIACHANNEL_H

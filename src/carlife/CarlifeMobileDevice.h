@@ -33,6 +33,15 @@ public: // cmd // MD->HU
       const std::string &, btaddress, const std::string &, btname)
 
   // MD->HU
+  IMPL_MEMBER_FUNC_NONE(screen_on, cmd_)
+
+  // MD->HU
+  IMPL_MEMBER_FUNC_NONE(screen_off, cmd_)
+
+  // MD->HU
+  IMPL_MEMBER_FUNC_NONE(screen_userpresent, cmd_)
+
+  // MD->HU
   IMPL_MEMBER_FUNC_NONE(foreground, cmd_)
 
   // MD->HU
@@ -79,7 +88,6 @@ public: // cmd // MD->HU
   IMPL_MEMBER_FUNC_NONE(ui_action_sound, cmd_)
 
   // MD->HU
-  typedef std::vector<std::tuple<int, bool, int>> mobile_info_vec_t;
   IMPL_MEMBER_FUNC_ONE(carlife_data_subscribe_done, cmd_,
                        const mobile_info_vec_t &, infos)
 
@@ -177,7 +185,6 @@ public: // cmd // HU->MD
 
   // HU->MD
   // parameter: [moduleid, flag, frequency]
-  typedef std::vector<std::tuple<int, int, int>> vehicle_info_vec_t;
   IMPL_CALLBACK_MEMBER_FUNC_ONE(car_data_subscribe_done, cmd_,
                                 const vehicle_info_vec_t &, infos)
 
@@ -214,6 +221,99 @@ public: // cmd // HU->MD
 
   // HU->MD
   IMPL_CALLBACK_MEMBER_FUNC_NONE(video_encoder_jpeg, cmd_)
+
+public: //! media/navi/vr control cmd // MD->HU
+  // MD->HU
+  // Deprecation, replace by vr_status
+  // parameter: [module_id, status_id]
+  IMPL_MEMBER_FUNC_ONE(module_status, cmd_, const status_vec_t &, status);
+
+public: //! media/navi/vr control cmd // HU->MD
+  // HU->MD
+  // paramter: module id, status id
+  IMPL_CALLBACK_MEMBER_FUNC_TWO(module_control, cmd_, int, moduleid, int,
+                                statusid);
+
+public: //! verification cmd // MD->HU
+  // MD->HU
+  IMPL_MEMBER_FUNC_ONE(md_authen_response, cmd_, const std::string &,
+                       encryptvalue);
+
+  // MD->HU
+  IMPL_MEMBER_FUNC_ONE(md_authen_result, cmd_, bool, authenresult);
+
+public: //! verification cmd // HU->MD
+  // HU->MD
+  IMPL_CALLBACK_MEMBER_FUNC_ONE(hu_authen_request, cmd_, const std::string &,
+                                randomvalue);
+
+  // HU->MD
+  IMPL_CALLBACK_MEMBER_FUNC_ONE(hu_authen_result, cmd_, bool, authenresult);
+
+  // HU->MD
+  IMPL_CALLBACK_MEMBER_FUNC_EIGHT(statistic_info, cmd_, const std::string &,
+                                  cuid, const std::string &, versionname, int,
+                                  versioncode, const std::string &, channel,
+                                  int, connectcount, int, connectsuccesscount,
+                                  int, connecttime, const std::string &,
+                                  crashlog);
+
+public: //! bluetooth cmd // MD->HU
+  // MD->HU
+  IMPL_MEMBER_FUNC_THREE(bt_hfp_request, cmd_, int, command,
+                         const std::string &, phonenum, int, dtmfcode);
+
+public: //! bluetooth cmd // HU->MD
+  // HU->MD
+  IMPL_CALLBACK_MEMBER_FUNC_FOUR(bt_hfp_indication, cmd_, int, state,
+                                 const std::string &, phonenum,
+                                 const std::string &, phonename,
+                                 const std::string &, address);
+
+  // HU->MD
+  IMPL_CALLBACK_MEMBER_FUNC_THREE(bt_hfp_connection, cmd_, int, state,
+                                  const std::string &, address,
+                                  const std::string &, name);
+
+public: //! Vidoe cmd // MD->HU
+  // MD->HU
+  // paramter: width pixel, height pixel, rate frame/second
+  IMPL_MEMBER_FUNC_THREE(encoder_init_done, cmd_, int, width, int, height, int,
+                         framerate);
+
+  // MD->HU
+  // paramter: rate frame/second
+  IMPL_MEMBER_FUNC_ONE(encoder_frame_rate_change_done, cmd_, int, framerate);
+
+public: //! Vidoe cmd // HU->MD
+  // HU->MD
+  // paramter: width pixel, height pixel, rate frame/second
+  IMPL_CALLBACK_MEMBER_FUNC_THREE(encoder_init, cmd_, int, width, int, height,
+                                  int, framerate);
+
+  // HU->MD
+  IMPL_CALLBACK_MEMBER_FUNC_NONE(encoder_start, cmd_);
+
+  // HU->MD
+  IMPL_CALLBACK_MEMBER_FUNC_NONE(encoder_pause, cmd_);
+
+  // HU->MD
+  IMPL_CALLBACK_MEMBER_FUNC_NONE(encoder_reset, cmd_);
+
+  // HU->MD
+  // paramter: rate frame/second
+  IMPL_CALLBACK_MEMBER_FUNC_ONE(encoder_frame_rate_change, cmd_, int,
+                                framerate);
+
+public: //! VR cmd // MD->HU
+  // MD->HU
+  IMPL_MEMBER_FUNC_NONE(mic_record_wakeup_start, cmd_);
+
+  // MD->HU
+  IMPL_MEMBER_FUNC_NONE(mic_record_end, cmd_);
+
+  // MD->HU
+  IMPL_MEMBER_FUNC_NONE(mic_record_recog_start, cmd_);
 
 public: // control
   // HU->MD
@@ -291,21 +391,20 @@ public: // vr // MD->HU
 
   // MD->HU
   // parameter: [module_id, status_id]
-  typedef std::vector<std::pair<int, int>> status_vec_t;
   IMPL_MEMBER_FUNC_ONE(vr_status, vr_, const status_vec_t &, status);
 
   // MD->HU
   IMPL_MEMBER_FUNC_NONE(vr_interrupt, vr_);
 
-  // MD->HU
-  // paramter: timestamp, data, data_size
-  IMPL_MEMBER_FUNC_THREE(mic_data, vr_, uint64_t, timestamp, const char *, tts,
-                         size_t, tts_size);
-
 public: // vr // HU->MD
   // HU->MD
   // paramter: timestamp, data, data_size
   IMPL_CALLBACK_MEMBER_FUNC_THREE(vr_data, vr_, uint64_t, timestamp,
+                                  const char *, tts, size_t, tts_size);
+
+  // HU->MD
+  // paramter: timestamp, data, data_size
+  IMPL_CALLBACK_MEMBER_FUNC_THREE(mic_data, vr_, uint64_t, timestamp,
                                   const char *, tts, size_t, tts_size);
 
 public:
@@ -322,6 +421,6 @@ private:
   VideoChannel video_;
   VRChannel vr_;
 
-};     // class CarlifeMobileDevice
+}; // class CarlifeMobileDevice
 
 #endif // CARLIFE_CARLIFEMOBILEDEVICE_H

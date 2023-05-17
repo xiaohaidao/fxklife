@@ -4,6 +4,15 @@
 
 #include "carlife/channel/ChannelBase.h"
 
+/**
+```mermaid
+sequenceDiagram
+  note left of MD: send Navi TTS data to HU
+  MD->>HU: MSG_TTS_INIT
+  MD->>HU: MSG_TTS_DATA
+  MD->>HU: MSG_TTS_END
+```
+*/
 class TTSChannel : public ChannelBase {
 public:
   // MD->HU
@@ -29,6 +38,6 @@ private:
   char buff_[TTS_DATA_SIZE];
   size_t buff_size_;
 
-};     // class TTSChannel
+}; // class TTSChannel
 
 #endif // CARLIFE_CHANNEL_TTSCHANNEL_H

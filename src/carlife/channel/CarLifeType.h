@@ -27,7 +27,7 @@ DEFINE
 #define CTRL_HEAD_LEN 8
 #define CTRL_DATA_SIZE 10 * 1024
 
-#define CHANNEL_NUMBER 6
+#define CHANNEL_NUMBER 7 // unknown 7
 
 #define CMD_SOCKET_PORT_MD 7240
 #define VIDEO_SOCKET_PORT_MD 8240
@@ -35,6 +35,7 @@ DEFINE
 #define TTS_SOCKET_PORT_MD 9241
 #define VR_SOCKET_PORT_MD 9242
 #define TOUCH_SOCKET_PORT_MD 9340
+#define UNKNOWN_SOCKET_PORT_MD 9440 // TODO Add
 
 #define CMD_SOCKET_PORT_HU 7200
 #define VIDEO_SOCKET_PORT_HU 8200
@@ -238,7 +239,7 @@ enum EPackageHeadType {
   KEYCODE_MAIN = 0x0000001E,
 };
 
-// VR status module id enum
+// module control status module id enum
 enum StatusModuleId {
   CARLIFE_PHONE_MODULE_ID = 1,
   CARLIFE_NAVI_MODULE_ID = 2,

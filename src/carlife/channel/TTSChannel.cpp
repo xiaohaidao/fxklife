@@ -62,8 +62,8 @@ const AudioMessageHeader &TTSChannel::transfer_from_head(const char *data) {
 }
 
 const char *TTSChannel::transfer_head(AudioMessageHeader &header) {
-  header.length = sockets::hostToNet(header.length);
+  header.length = sockets::host_to_net(header.length);
   header.service_type =
-      (EPackageHeadType)sockets::hostToNet((uint32_t)header.service_type);
+      (EPackageHeadType)sockets::host_to_net((uint32_t)header.service_type);
   return (const char *)&header;
 }
